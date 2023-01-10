@@ -1,14 +1,14 @@
 {
-    "_output_dir": "/Users/gavinaws/git/personal",
-    "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
-    "author": "Gavin Adams",
-    "copyright_year": "2023",
-    "development_status": "Development Status :: 1 - Planning",
-    "email": "me@gavinadams.org",
-    "friendly_name": "Iamra",
-    "github_user": "gadams999",
-    "license": "MIT",
-    "package_name": "iamra",
-    "project_name": "iamra",
-    "version": "0.0.0"
+  "_output_dir": "/Users/gavinaws/git/personal",
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Gavin Adams",
+  "copyright_year": "2023",
+  "development_status": "Development Status :: 1 - Planning",
+  "email": "me@gavinadams.org",
+  "friendly_name": "Iamra",
+  "github_user": "gadams999",
+  "license": "MIT",
+  "package_name": "iamra",
+  "project_name": "iamra",
+  "version": "0.0.0"
 }

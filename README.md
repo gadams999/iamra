@@ -23,11 +23,11 @@
 
 ## Features
 
--   TODO
+- TODO
 
 ## Requirements
 
--   TODO
+- TODO
 
 ## Installation
 
