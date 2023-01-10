@@ -103,7 +103,6 @@ class Credentials:
         self.role_arn = role_arn
         self.session_name = session_name
         self.trust_anchor_arn = trust_anchor_arn
-        self.passphrase = passphrase
         self.credentials = {
             "accessKeyId": "",
             "expiration": "",
@@ -115,7 +114,7 @@ class Credentials:
         try:
             with open(Path(private_key_filename), "rb") as f:
                 self.private_key = serialization.load_pem_private_key(
-                    f.read(), password=self.passphrase
+                    f.read(), password=passphrase
                 )
                 if isinstance(self.private_key, rsa.RSAPrivateKey):
                     self.signing_method = "AWS4-X509-RSA-SHA256"
@@ -126,6 +125,8 @@ class Credentials:
                         "Unknown private key type, only RSA and EC keys "
                         + "are supported for IAM Roles Anywhere"
                     )
+        except ValueError as e:
+            raise ValueError(e) from e
         except FileNotFoundError as e:
             raise FileNotFoundError(
                 f"Private key {private_key_filename} not found"
