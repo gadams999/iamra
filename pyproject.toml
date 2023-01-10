@@ -17,7 +17,8 @@ Changelog = "https://github.com/gadams999/iamra/releases"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-click = ">=8.0.1"
+cryptography = "^39.0.0"
+urllib3 = "^1.26.13"
 
 [tool.poetry.dev-dependencies]
 Pygments = ">=2.10.0"
