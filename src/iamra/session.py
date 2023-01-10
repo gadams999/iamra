@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 from typing import List
+from typing import Optional
 from typing import TypedDict
 
 import urllib3
@@ -74,7 +75,7 @@ class Credentials:
         role_arn: str,
         session_name: str,
         trust_anchor_arn: str,
-        passphrase: str = "",
+        passphrase: Optional[bytes] = None,
     ):
         """Initialize object with session-specific details.
 
@@ -93,17 +94,14 @@ class Credentials:
             passphrase: Optional passphrase for the private key file
 
         Raises:
-            Exception: _description_
             FileNotFoundError: If certificate or private key files not found
-            e: _description_
-            e: _description_
-            e: _description_
         """
         # Set object variables from init
         self.region: str = region
         self.duration = duration
         self.profile_arn = profile_arn
         self.role_arn = role_arn
+        self.session_name = session_name
         self.trust_anchor_arn = trust_anchor_arn
         self.passphrase = passphrase
         self.credentials = {
