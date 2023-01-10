@@ -13,7 +13,7 @@ jobs:
             matrix:
                 include:
                     - {
-                          python: "3.11",
+                          python: "3.10",
                           os: "ubuntu-latest",
                           session: "pre-commit",
                       }
