@@ -2,6 +2,7 @@
 import pytest
 
 from iamra import Credentials
+from iamra.session import EncryptionAlgorithmError
 
 
 valid_region = "us-east-1"
@@ -105,7 +106,7 @@ def test_session_ecc_bad_passphrase() -> None:
 def test_session_dsa() -> None:
     """Verify DSA certificate and value error."""
     with pytest.raises(
-        ValueError,
+        EncryptionAlgorithmError,
         match=(
             r"Unknown private key type, only RSA and EC keys "
             + r"are supported for IAM Roles Anywhere"
@@ -159,6 +160,45 @@ def test_session_invalid_privatekey_file() -> None:
         )
 
 
-# test with DSA - bad
-# test cert not found
-# test key not found
+def test_session_duration() -> None:
+    """Check upper and lower duration bounds."""
+    durations = [300, 7200]
+
+    for duration in durations:
+        with pytest.raises(
+            ValueError,
+            match=r"Duration must be at least 15 minutes and less than 1 hour",
+        ):
+            Credentials(
+                region=valid_region,
+                cert_filename="tests/assets/client_rsa2048.pem",
+                private_key_filename="tests/assets/client_rsa2048.key",
+                duration=duration,
+                profile_arn=profile_arn,
+                role_arn=role_arn,
+                session_name="test_session",
+                trust_anchor_arn=trust_anchor_arn,
+            )
+
+
+# Call get_credentials and verify HTTP call and mocked AWS response
+@pytest.fixture
+def my_session():
+    """Create a Credentials object for method calls."""
+    return Credentials(
+        region=valid_region,
+        cert_filename="tests/assets/client_secp384r1.pem",
+        private_key_filename="tests/assets/client_secp384r1.key",
+        duration=3600,
+        profile_arn=profile_arn,
+        role_arn=role_arn,
+        session_name="test_session",
+        trust_anchor_arn=trust_anchor_arn,
+    )
+
+
+def test_get_credentials(my_session):
+    """Use session fixture to exercise credential calls."""
+    response = my_session.get_credentials()
+    print(response)
+    raise AssertionError()

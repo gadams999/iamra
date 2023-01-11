@@ -55,6 +55,12 @@ class SessionResponse(TypedDict):
     subject_arn: str
 
 
+class EncryptionAlgorithmError(Exception):
+    """Define error class."""
+
+    pass
+
+
 class Credentials:
     """Creates credentials object for temporary AWS credentials.
 
@@ -95,6 +101,9 @@ class Credentials:
 
         Raises:
             FileNotFoundError: If certificate or private key files not found
+            ValueError: Invalid attribute values
+            EncryptionAlgorithmError: Private key other than RSA or EC
+
         """
         # Set object variables from init
         self.region: str = region
@@ -121,7 +130,7 @@ class Credentials:
                 elif isinstance(self.private_key, ec.EllipticCurvePrivateKey):
                     self.signing_method = "AWS4-X509-ECDSA-SHA256"
                 else:
-                    raise ValueError(
+                    raise EncryptionAlgorithmError(
                         "Unknown private key type, only RSA and EC keys "
                         + "are supported for IAM Roles Anywhere"
                     )
@@ -145,10 +154,10 @@ class Credentials:
             raise FileNotFoundError(f"Certificate {cert_filename} not found") from e
 
         # Validate rest of initial values
-        if self.duration < 900:
-            raise Exception("Duration must be at least 15 minutes")
-        elif self.duration > 3600:
-            raise Exception("Duration must be less than 1 hour")
+        if self.duration < 900 or self.duration > 3600:
+            raise ValueError(
+                "Duration must be at least 15 minutes and less than 1 hour"
+            )
 
     def get_credentials(self) -> SessionResponse:
         """Generate temporary AWS credentials.
@@ -160,11 +169,14 @@ class Credentials:
         Args:
             None
 
+        Raises:
+            urllib3.exceptions.HTTPError:
+            For all HTTP call and AWS responses, until we have more tests.
+
         Returns:
             CredentialSet
         """
         # Build request
-
         # generate time and date for use in signing the request
         dt = datetime.datetime.utcnow()
         request_date_time = dt.strftime("%Y%m%dT%H%M%SZ")
@@ -251,10 +263,15 @@ class Credentials:
                 headers=http_headers,
                 body=payload.encode("utf-8"),
             )
-        except Exception as e:
-            raise e
+        except urllib3.exceptions.HTTPError as e:
+            # Raise all urllib3 exceptions
+            print(r.headers)
+            raise urllib3.exceptions.HTTPError(f"HTTP error: {e}") from e
+
+        # Completed response, determine if 200 (ok) or 4xx (error)
 
         # Set object credentials from response
+        print(f"{r.status}\n{r.headers}")
         self.credentials = r.data["credentialSet"][0]["credentials"]
 
         return SessionResponse(r.data)
