@@ -12,8 +12,9 @@ from pathlib import Path
 from typing import List
 from typing import Optional
 from typing import TypedDict
+from typing import cast
 
-import urllib3
+import requests
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
@@ -170,8 +171,7 @@ class Credentials:
             None
 
         Raises:
-            urllib3.exceptions.HTTPError:
-            For all HTTP call and AWS responses, until we have more tests.
+            BaseException: For all HTTP call and AWS responses, until we have more tests.
 
         Returns:
             CredentialSet
@@ -248,33 +248,28 @@ class Credentials:
         # Complete by creating signature for use in HTTP Authorization header
         signature = self._sign_signature(string_to_sign, self.private_key)
 
-        # Call Roles Anywhere
-        http = urllib3.PoolManager()
-
         # Add Authorization header to request
         http_headers["Authorization"] = (
             f"{self.signing_method} Credential={self.certificate_serial_number}/{credential_scope}, "
             + f"SignedHeaders={signed_headers}, Signature={signature}"
         )
         try:
-            r = http.request(
-                "POST",
+            r = requests.post(
                 f"https://rolesanywhere.{self.region}.amazonaws.com/sessions",
                 headers=http_headers,
-                body=payload.encode("utf-8"),
+                data=payload.encode("utf-8"),
             )
-        except urllib3.exceptions.HTTPError as e:
+        except BaseException as e:
             # Raise all urllib3 exceptions
-            print(r.headers)
-            raise urllib3.exceptions.HTTPError(f"HTTP error: {e}") from e
+            raise BaseException(f"Error making request: {e}") from e
 
         # Completed response, determine if 200 (ok) or 4xx (error)
 
         # Set object credentials from response
-        print(f"{r.status}\n{r.headers}")
-        self.credentials = r.data["credentialSet"][0]["credentials"]
+        self.credentials = r.json()["credentialSet"][0]["credentials"]
 
-        return SessionResponse(r.data)
+        # Validated session response
+        return cast(SessionResponse, r.json())
 
     @staticmethod
     def _canonical_header_entry(name: str, value: str) -> str:
