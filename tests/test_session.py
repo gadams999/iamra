@@ -183,7 +183,7 @@ def test_session_duration() -> None:
 
 # Call get_credentials and verify HTTP call and mocked AWS response
 @pytest.fixture
-def my_session():
+def my_session() -> None:
     """Create a Credentials object for method calls."""
     return Credentials(
         region=valid_region,
@@ -197,7 +197,7 @@ def my_session():
     )
 
 
-def test_get_credentials(my_session):
+def test_get_credentials(my_session: Credentials) -> None:
     """Use session fixture to exercise credential calls."""
     response = my_session.get_credentials()
     print(response)

@@ -19,8 +19,12 @@ Changelog = "https://github.com/gadams999/iamra/releases"
 python = "^3.9"
 cryptography = "^39.0.0"
 urllib3 = "^1.26.13"
+requests = "^2.28.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.scripts]
+iamra = "iamra.__main__:main"
+
+[tool.poetry.group.dev.dependencies]
 Pygments = ">=2.10.0"
 black = ">=21.10b0"
 coverage = {extras = ["toml"], version = ">=6.2"}
@@ -45,9 +49,7 @@ sphinx-click = ">=3.0.2"
 typeguard = ">=2.13.3"
 xdoctest = {extras = ["colors"], version = ">=0.15.10"}
 myst-parser = {version = ">=0.16.1"}
-
-[tool.poetry.scripts]
-iamra = "iamra.__main__:main"
+types-requests = "^2.28.11.7"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
