@@ -4,5 +4,6 @@
     "editor.detectIndentation": false,
     "[python]": {
         "editor.defaultFormatter": "ms-python.python"
-    }
+    },
+    "cSpell.words": ["iamra", "rolesanywhere", "secp"]
 }

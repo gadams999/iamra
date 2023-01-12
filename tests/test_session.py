@@ -151,11 +151,11 @@ def test_session_invalid_cert_file() -> None:
     """Verify certificate file not found."""
     with pytest.raises(
         FileNotFoundError,
-        match=r"Certificate tests/assets/cert_file_doesnt_exist.pem not found",
+        match=r"Certificate tests/assets/cert_file_does_not_exist.pem not found",
     ):
         Credentials(
             region=valid_region,
-            cert_filename="tests/assets/cert_file_doesnt_exist.pem",
+            cert_filename="tests/assets/cert_file_does_not_exist.pem",
             private_key_filename="tests/assets/client_rsa2048.key",
             duration=3600,
             profile_arn=profile_arn,
@@ -169,12 +169,12 @@ def test_session_invalid_privatekey_file() -> None:
     """Verify private key file not found."""
     with pytest.raises(
         FileNotFoundError,
-        match=r"Private key tests/assets/privatekey_file_doesnt_exist.key not found",
+        match=r"Private key tests/assets/privatekey_file_does_not_exist.key not found",
     ):
         Credentials(
             region=valid_region,
             cert_filename="tests/assets/client_rsa2048.pem",
-            private_key_filename="tests/assets/privatekey_file_doesnt_exist.key",
+            private_key_filename="tests/assets/privatekey_file_does_not_exist.key",
             duration=3600,
             profile_arn=profile_arn,
             role_arn=role_arn,
