@@ -1,4 +1,6 @@
-"""Test cases for the __main__ module."""
+"""Test cases for the iamra module."""
+from time import time
+
 import pytest
 
 from iamra import Credentials
@@ -15,6 +17,27 @@ trust_anchor_arn = (
     "arn:aws:rolesanywhere:us-east-1:123456789012:"
     + "trust-anchor/e7f288d3-58f8-467f-bf7a-085c86905cdf"
 )
+
+valid_session_response = {
+    "credentialSet": [
+        {
+            "assumedRoleUser": {
+                "arn": "test_assumed_user_arn",
+                "assumedRoleId": "test_role_id",
+            },
+            "credentials": {
+                "accessKeyId": "test_access_key_id",
+                "expiration": time(),
+                "secretAccessKey": "test_secret_access_key",
+                "sessionToken": "test_session_token",
+            },
+            "packedPolicySize": 12345,
+            "roleArn": "test_role_arn",
+            "sourceIdentity": "test_source_identity",
+        }
+    ],
+    "subjectArn": "test_subject_arn",
+}
 
 
 def test_default_session() -> None:
@@ -182,23 +205,24 @@ def test_session_duration() -> None:
 
 
 # Call get_credentials and verify HTTP call and mocked AWS response
-@pytest.fixture
-def my_session() -> None:
-    """Create a Credentials object for method calls."""
-    return Credentials(
-        region=valid_region,
-        cert_filename="tests/assets/client_secp384r1.pem",
-        private_key_filename="tests/assets/client_secp384r1.key",
-        duration=3600,
-        profile_arn=profile_arn,
-        role_arn=role_arn,
-        session_name="test_session",
-        trust_anchor_arn=trust_anchor_arn,
-    )
+test_session = Credentials(
+    region=valid_region,
+    cert_filename="tests/assets/client_secp384r1.pem",
+    private_key_filename="tests/assets/client_secp384r1.key",
+    duration=3600,
+    profile_arn=profile_arn,
+    role_arn=role_arn,
+    session_name="test_session",
+    trust_anchor_arn=trust_anchor_arn,
+)
 
 
-def test_get_credentials(my_session: Credentials) -> None:
+def test_get_credentials_valid(requests_mock) -> None:
     """Use session fixture to exercise credential calls."""
-    response = my_session.get_credentials()
-    print(response)
-    raise AssertionError()
+    requests_mock.post(
+        f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
+        status_code=200,
+        json=valid_session_response,
+    )
+    response = test_session.get_credentials()
+    assert response == valid_session_response
