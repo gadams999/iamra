@@ -28,33 +28,33 @@ class AssumedRoleUserType(TypedDict):
     """AssumedRoleUserType."""
 
     arn: str
-    assumed_role_id: str
+    assumedRoleId: str  # noqa: N815
 
 
 class CredentialsType(TypedDict):
     """CredentialsType."""
 
-    access_key_id: str
+    accessKeyId: str  # noqa: N815
     expiration: float
-    secret_access_key: str
-    session_token: str
+    secretAccessKey: str  # noqa: N815
+    sessionToken: str  # noqa: N815
 
 
 class CredentialSet(TypedDict):
     """CredentialSet type."""
 
-    assumed_role_user: AssumedRoleUserType
+    assumedRoleUser: AssumedRoleUserType  # noqa: N815
     credentials: CredentialsType
-    packed_policy_size: int
-    role_arn: str
-    source_identity: str
+    packedPolicySize: int  # noqa: N815
+    roleArn: str  # noqa: N815
+    sourceIdentity: str  # noqa: N815
 
 
 class SessionResponse(TypedDict):
     """Returned Credentials dictionary format."""
 
-    credential_set: List[CredentialsType]
-    subject_arn: str
+    credentialSet: List[CredentialSet]  # noqa: N815
+    subjectArn: str  # noqa: N815
 
 
 class EncryptionAlgorithmError(Exception):
