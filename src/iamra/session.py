@@ -9,6 +9,7 @@ import datetime
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 from typing import List
 from typing import Optional
 from typing import TypedDict
@@ -199,7 +200,7 @@ class Credentials:
         if self.session_name is not None:
             payload["sessionName"] = self.session_name
         # Then dump to JSON string
-        payload = json.dumps(payload)
+        payload_str: str = json.dumps(payload)
 
         # Create canonical header entries (lowercase, trim, and sort)
         canonical_header_entries = []
@@ -213,7 +214,7 @@ class Credentials:
         signed_headers = self._signed_header_list(canonical_header_entries)
 
         # Craft the canonical request
-        canonical_request = (
+        canonical_request: Any = (
             "POST"
             + "\n"
             + "/sessions"
@@ -224,7 +225,7 @@ class Credentials:
             + "\n"
             + signed_headers
             + "\n"
-            + hashlib.sha256(payload.encode("utf-8")).hexdigest()
+            + hashlib.sha256(payload_str.encode("utf-8")).hexdigest()
         )
 
         # Hash the canonical request
@@ -257,7 +258,7 @@ class Credentials:
             r = requests.post(
                 f"https://rolesanywhere.{self.region}.amazonaws.com/sessions",
                 headers=http_headers,
-                data=payload.encode("utf-8"),
+                data=payload_str.encode("utf-8"),
             )
         except BaseException as e:
             # Raise all urllib3 exceptions
