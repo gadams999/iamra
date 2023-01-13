@@ -9,7 +9,7 @@ from requests.exceptions import Timeout
 
 from iamra import Credentials
 from iamra.session import EncryptionAlgorithmError
-from iamra.session import UntrustedCertificate
+from iamra.session import UntrustedCertificateError
 
 
 valid_region = "us-east-1"
@@ -262,7 +262,7 @@ def test_get_credentials_rsa_valid(requests_mock) -> None:
 
 def test_get_credentials_bad() -> None:
     """Make an actual call to the service with bad credentials."""
-    with pytest.raises(UntrustedCertificate):
+    with pytest.raises(UntrustedCertificateError):
         test_ec_session.get_credentials()
 
 

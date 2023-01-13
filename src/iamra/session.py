@@ -24,7 +24,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from .exceptions import EncryptionAlgorithmError
-from .exceptions import UntrustedCertificate
+from .exceptions import UntrustedCertificateError
 
 
 class AssumedRoleUserType(TypedDict):
@@ -173,7 +173,7 @@ class Credentials:
             ConnectionError: If unable to establish a connection to the endpoint
             Timeout: If response not received in time
             RequestException: General requests error
-            UntrustedCertificate: If certificate is not trusted or insufficient
+            UntrustedCertificateError: If certificate is not trusted or insufficient
 
         Returns:
             SessionResponse: Full response object from IAM Roles Anywhere
@@ -277,7 +277,7 @@ class Credentials:
         # Completed response, determine if 200 (ok) or 4xx (error)
         if r.status_code != 201:
             if r.status_code == 403:
-                raise UntrustedCertificate(
+                raise UntrustedCertificateError(
                     f"Response status code {r.status_code}, response message: {r.text}"
                 )
             else:  # pragma: no cover (will happen for all other 4XX codes)
