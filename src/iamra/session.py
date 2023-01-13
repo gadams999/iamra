@@ -23,6 +23,9 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 
+from .exceptions import EncryptionAlgorithmError
+from .exceptions import UntrustedCertificate
+
 
 class AssumedRoleUserType(TypedDict):
     """AssumedRoleUserType."""
@@ -57,12 +60,6 @@ class SessionResponse(TypedDict):
     subjectArn: str  # noqa: N815
 
 
-class EncryptionAlgorithmError(Exception):
-    """Define error class."""
-
-    pass
-
-
 class Credentials:
     """Creates credentials object for temporary AWS credentials.
 
@@ -81,8 +78,8 @@ class Credentials:
         duration: int,
         profile_arn: str,
         role_arn: str,
-        session_name: str,
         trust_anchor_arn: str,
+        session_name: Optional[str] = None,
         passphrase: Optional[bytes] = None,
     ):
         """Initialize object with session-specific details.
@@ -161,7 +158,7 @@ class Credentials:
                 "Duration must be at least 15 minutes and less than 1 hour"
             )
 
-    def get_credentials(self) -> SessionResponse:
+    def get_credentials(self) -> Optional[SessionResponse]:
         """Generate temporary AWS credentials.
 
         Call IAM Roles Anywhere to vend credentials. Upon success
@@ -172,10 +169,15 @@ class Credentials:
             None
 
         Raises:
-            BaseException: For all HTTP call and AWS responses, until we have more tests.
+            HTTPError: If general HTTP error in encountered
+            ConnectionError: If unable to establish a connection to the endpoint
+            Timeout: If response not received in time
+            RequestException: General requests error
+            UntrustedCertificate: If certificate is not trusted or insufficient
 
         Returns:
-            CredentialSet
+            SessionResponse: Full response object from IAM Roles Anywhere
+
         """
         # Build request
         # generate time and date for use in signing the request
@@ -199,6 +201,7 @@ class Credentials:
         # add sessionName if provided
         if self.session_name is not None:
             payload["sessionName"] = self.session_name
+
         # Then dump to JSON string
         payload_str: str = json.dumps(payload)
 
@@ -260,16 +263,32 @@ class Credentials:
                 headers=http_headers,
                 data=payload_str.encode("utf-8"),
             )
-        except BaseException as e:
-            # Raise all urllib3 exceptions
-            raise BaseException(f"Error making request: {e}") from e
+        except requests.exceptions.HTTPError as errh:
+            raise requests.exceptions.HTTPError(f"HTTP error: {errh}") from errh
+        except requests.exceptions.ConnectionError as errc:
+            raise requests.exceptions.ConnectionError(
+                f"Error connecting: {errc}"
+            ) from errc
+        except requests.exceptions.Timeout as errt:
+            raise requests.exceptions.Timeout(f"Timeout error: {errt}") from errt
+        except requests.exceptions.RequestException as err:
+            raise requests.exceptions.RequestException(f"Unknown error: {err}") from err
 
         # Completed response, determine if 200 (ok) or 4xx (error)
+        if r.status_code != 201:
+            if r.status_code == 403:
+                raise UntrustedCertificate(
+                    f"Response status code {r.status_code}, response message: {r.text}"
+                )
+            else:  # pragma: no cover (will happen for all other 4XX codes)
+                raise requests.exceptions.HTTPError(
+                    f"Response status code {r.status_code}, response message: {r.text}"
+                )
 
         # Set object credentials from response
         self.credentials = r.json()["credentialSet"][0]["credentials"]
 
-        # Validated session response
+        # Return complete response object
         return cast(SessionResponse, r.json())
 
     @staticmethod
@@ -300,4 +319,6 @@ class Credentials:
             signature = key.sign(
                 string_to_sign.encode("utf-8"), ec.ECDSA(hashes.SHA256())
             )
+        else:  # pragma: no cover
+            raise TypeError("Unsupported key type")
         return signature.hex()

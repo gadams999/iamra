@@ -2,9 +2,14 @@
 from time import time
 
 import pytest
+from requests.exceptions import ConnectionError
+from requests.exceptions import HTTPError
+from requests.exceptions import RequestException
+from requests.exceptions import Timeout
 
 from iamra import Credentials
 from iamra.session import EncryptionAlgorithmError
+from iamra.session import UntrustedCertificate
 
 
 valid_region = "us-east-1"
@@ -205,24 +210,69 @@ def test_session_duration() -> None:
 
 
 # Call get_credentials and verify HTTP call and mocked AWS response
-test_session = Credentials(
+test_ec_session = Credentials(
     region=valid_region,
     cert_filename="tests/assets/client_secp384r1.pem",
     private_key_filename="tests/assets/client_secp384r1.key",
     duration=3600,
     profile_arn=profile_arn,
     role_arn=role_arn,
-    session_name="test_session",
+    session_name="test_ec_session",
+    trust_anchor_arn=trust_anchor_arn,
+)
+
+test_rsa_session = Credentials(
+    region=valid_region,
+    cert_filename="tests/assets/client_rsa2048.pem",
+    private_key_filename="tests/assets/client_rsa2048.key",
+    duration=3600,
+    profile_arn=profile_arn,
+    role_arn=role_arn,
+    session_name="test_rsa_session",
     trust_anchor_arn=trust_anchor_arn,
 )
 
 
-def test_get_credentials_valid(requests_mock) -> None:
-    """Use session fixture to exercise credential calls."""
+def test_get_credentials_ec_valid(requests_mock) -> None:
+    """Use session fixture to exercise credential calls with EC certificate."""
     requests_mock.post(
         f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
-        status_code=200,
+        status_code=201,
         json=valid_session_response,
     )
-    response = test_session.get_credentials()
+    response = test_ec_session.get_credentials()
     assert response == valid_session_response
+
+    # Test without a session name
+    test_ec_session.session_name = None
+    response = test_ec_session.get_credentials()
+    assert response == valid_session_response
+
+
+def test_get_credentials_rsa_valid(requests_mock) -> None:
+    """Use session fixture to exercise credential calls with RSA certificate."""
+    requests_mock.post(
+        f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
+        status_code=201,
+        json=valid_session_response,
+    )
+    response = test_rsa_session.get_credentials()
+    assert response == valid_session_response
+
+
+def test_get_credentials_bad() -> None:
+    """Make an actual call to the service with bad credentials."""
+    with pytest.raises(UntrustedCertificate):
+        test_ec_session.get_credentials()
+
+
+def test_get_credentials_request_error(requests_mock) -> None:
+    """Test requests module errors."""
+    exception_type = [HTTPError, ConnectionError, Timeout, RequestException]
+    for exception in exception_type:
+        with pytest.raises(exception):
+            requests_mock.post(
+                f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
+                exc=exception,
+            )
+            test_ec_session.get_credentials()
