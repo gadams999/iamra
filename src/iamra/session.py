@@ -68,12 +68,16 @@ class Credentials:
 
     Returns:
         Credentials object
+
+    Raises:
+        FileNotFoundError: If certificate or private key files not found
+        EncryptionAlgorithmError: Private key other than RSA or EC
     """
 
     def __init__(  # noqa: S107
         self,
         region: str,
-        cert_filename: str,
+        certificate_filename: str,
         private_key_filename: str,
         duration: int,
         profile_arn: str,
@@ -81,6 +85,7 @@ class Credentials:
         trust_anchor_arn: str,
         session_name: Optional[str] = None,
         passphrase: Optional[bytes] = None,
+        certificate_chain_filename: Optional[str] = None,
     ):
         """Initialize object with session-specific details.
 
@@ -89,68 +94,41 @@ class Credentials:
 
         Args:
             region: AWS Region
-            cert_filename: Path to the certificate file
+            certificate_filename: Path to the certificate file
             private_key_filename: Path to the private key file
+            passphrase: Optional passphrase for the private key file
+            certificate_chain_filename: File containing certificate chain to CA in trust anchor
             duration: Duration of the credentials in seconds
             profile_arn: ARN of the Roles Anywhere profile to use
             role_arn: Name of the IAM role attached to the profile arn to use
             session_name: Name of the Roles Anywhere session
             trust_anchor_arn: ARN of the Roles Anywhere trust anchor that signed the certificate
-            passphrase: Optional passphrase for the private key file
 
         Raises:
-            FileNotFoundError: If certificate or private key files not found
             ValueError: Invalid attribute values
-            EncryptionAlgorithmError: Private key other than RSA or EC
 
         """
         # Set object variables from init
         self.region: str = region
-        self.duration = duration
-        self.profile_arn = profile_arn
-        self.role_arn = role_arn
+        self.duration: int = duration
+        self.profile_arn: str = profile_arn
+        self.role_arn: str = role_arn
         self.session_name = session_name
-        self.trust_anchor_arn = trust_anchor_arn
+        self.trust_anchor_arn: str = trust_anchor_arn
         self.credentials = {
             "accessKeyId": "",
             "expiration": "",
             "secretAccessKey": "",
             "sessionToken": "",
         }
+        self.certificate_chain_der = certificate_chain_filename
 
-        # Read the private key and certificate
-        try:
-            with open(Path(private_key_filename), "rb") as f:
-                self.private_key = serialization.load_pem_private_key(
-                    f.read(), password=passphrase
-                )
-                if isinstance(self.private_key, rsa.RSAPrivateKey):
-                    self.signing_method = "AWS4-X509-RSA-SHA256"
-                elif isinstance(self.private_key, ec.EllipticCurvePrivateKey):
-                    self.signing_method = "AWS4-X509-ECDSA-SHA256"
-                else:
-                    raise EncryptionAlgorithmError(
-                        "Unknown private key type, only RSA and EC keys "
-                        + "are supported for IAM Roles Anywhere"
-                    )
-        except ValueError as e:
-            raise ValueError(e) from e
-        except FileNotFoundError as e:
-            raise FileNotFoundError(
-                f"Private key {private_key_filename} not found"
-            ) from e
-
-        try:
-            with open(Path(cert_filename), "rb") as f:
-                self.certificate = x509.load_pem_x509_certificate(
-                    f.read(),
-                )
-                self.certificate_der: str = base64.b64encode(
-                    self.certificate.public_bytes(serialization.Encoding.DER)
-                ).decode("utf-8")
-                self.certificate_serial_number = self.certificate.serial_number
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"Certificate {cert_filename} not found") from e
+        self.__set_pki_values(
+            private_key_filename,
+            certificate_filename,
+            certificate_chain_filename,
+            passphrase,
+        )
 
         # Validate rest of initial values
         if self.duration < 900 or self.duration > 3600:
@@ -158,7 +136,7 @@ class Credentials:
                 "Duration must be at least 15 minutes and less than 1 hour"
             )
 
-    def get_credentials(self) -> Optional[SessionResponse]:
+    def get_credentials(self) -> Optional[SessionResponse]:  # noqa: C901
         """Generate temporary AWS credentials.
 
         Call IAM Roles Anywhere to vend credentials. Upon success
@@ -192,13 +170,17 @@ class Credentials:
             "X-Amz-Date": request_date_time,
             "X-Amz-X509": self.certificate_der,
         }
+        # Add optional certificate chain header if provided
+        if self.certificate_chain_der is not None:
+            http_headers["X-Amz-X509-Chain"] = self.certificate_chain_der
+
         payload = {
             "durationSeconds": self.duration,
             "profileArn": self.profile_arn,
             "roleArn": self.role_arn,
             "trustAnchorArn": self.trust_anchor_arn,
         }
-        # add sessionName if provided
+        # Add optional sessionName if provided
         if self.session_name is not None:
             payload["sessionName"] = self.session_name
 
@@ -209,12 +191,15 @@ class Credentials:
         canonical_header_entries = []
         for entry in http_headers:
             canonical_header_entries.append(
-                self._canonical_header_entry(entry, http_headers[entry])
+                self.__canonical_header_entry(entry, http_headers[entry])
             )
-        canonical_header_entries.sort()
+        # Sort canonical headers by the header name (e.g., the x-amz-x509 in x-amz-x509:MII)
+        canonical_header_entries = sorted(
+            canonical_header_entries, key=lambda x: str(x.split(":")[0])
+        )
 
         # Create the signed header list (e.g., content-type;host;x-amz-date;x-amz-x509)
-        signed_headers = self._signed_header_list(canonical_header_entries)
+        signed_headers = self.__signed_header_list(canonical_header_entries)
 
         # Craft the canonical request
         canonical_request: Any = (
@@ -250,7 +235,7 @@ class Credentials:
         )
 
         # Complete by creating signature for use in HTTP Authorization header
-        signature = self._sign_signature(string_to_sign, self.private_key)
+        signature = self.__sign_signature(string_to_sign, self.private_key)
 
         # Add Authorization header to request
         http_headers["Authorization"] = (
@@ -291,12 +276,74 @@ class Credentials:
         # Return complete response object
         return cast(SessionResponse, r.json())
 
+    def __set_pki_values(  # noqa: C901
+        self,
+        private_key_filename: str,
+        certificate_filename: str,
+        certificate_chain_filename: Optional[str],
+        passphrase: Optional[bytes],
+    ) -> None:
+        # Read the private key and certificate and set values for signing
+        try:
+            with open(Path(private_key_filename), "rb") as f:
+                self.private_key = serialization.load_pem_private_key(
+                    f.read(), password=passphrase
+                )
+                if isinstance(self.private_key, rsa.RSAPrivateKey):
+                    self.signing_method = "AWS4-X509-RSA-SHA256"
+                elif isinstance(self.private_key, ec.EllipticCurvePrivateKey):
+                    self.signing_method = "AWS4-X509-ECDSA-SHA256"
+                else:
+                    raise EncryptionAlgorithmError(
+                        "Unknown private key type, only RSA and EC keys "
+                        + "are supported for IAM Roles Anywhere"
+                    )
+        except ValueError as e:
+            raise ValueError(e) from e
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Private key {private_key_filename} not found"
+            ) from e
+
+        try:
+            with open(Path(certificate_filename), "rb") as f:
+                self.certificate = x509.load_pem_x509_certificate(
+                    f.read(),
+                )
+                self.certificate_der: str = base64.b64encode(
+                    self.certificate.public_bytes(serialization.Encoding.DER)
+                ).decode("utf-8")
+                self.certificate_serial_number = self.certificate.serial_number
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Certificate {certificate_filename} not found"
+            ) from e
+
+        # If the certificate is signed by a CA underneath one in the trust anchor
+        # the contents of the certificate chain is read and header used during signing
+        if certificate_chain_filename:
+            try:
+                with open(Path(certificate_chain_filename), "rb") as f:
+                    certificate_chain = x509.load_pem_x509_certificates(f.read())
+                certificates_in_der: List[str] = []
+                for cert in certificate_chain:
+                    certificates_in_der.append(
+                        base64.b64encode(
+                            cert.public_bytes(serialization.Encoding.DER)
+                        ).decode("utf-8")
+                    )
+                self.certificate_chain_der = ",".join(certificates_in_der)
+            except FileNotFoundError as e:
+                raise FileNotFoundError(
+                    f"Certificate chain {certificate_chain_filename} not found"
+                ) from e
+
     @staticmethod
-    def _canonical_header_entry(name: str, value: str) -> str:
+    def __canonical_header_entry(name: str, value: str) -> str:
         return f"{name.lower()}:{' '.join(value.split())}"
 
     @staticmethod
-    def _signed_header_list(headers: list) -> str:
+    def __signed_header_list(headers: list) -> str:
         entry = ""
         for header in headers:
             entry += header.split(":")[0] + ";"
@@ -304,7 +351,7 @@ class Credentials:
         return entry[:-1]
 
     @staticmethod
-    def _sign_signature(string_to_sign: str, key) -> str:
+    def __sign_signature(string_to_sign: str, key) -> str:
         """Signs a string with the private key."""
         if isinstance(key, rsa.RSAPrivateKey):
             signature = key.sign(

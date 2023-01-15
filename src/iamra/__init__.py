@@ -9,7 +9,7 @@ Basic usage with local private key and X.509 certificate:
    >>> import iamra
    >>> session = iamra.Credentials(
            region="us-east-1",
-           cert_filename="client.pem",
+           certificate_filename="client.pem",
            private_key_filename="client.key",
            duration=3600,
            profile_arn="arn:aws:rolesanywhere:us-west-2:1234567890:profile/3d203fc0-7bba-4ec1-a6ef-697504ce1c72",

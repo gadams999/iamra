@@ -52,7 +52,7 @@ def test_default_session() -> None:
     """
     session = Credentials(
         region=valid_region,
-        cert_filename="tests/assets/client_secp384r1.pem",
+        certificate_filename="tests/assets/client_secp384r1.pem",
         private_key_filename="tests/assets/client_secp384r1.key",
         duration=3600,
         profile_arn=profile_arn,
@@ -78,7 +78,7 @@ def test_session_rsa() -> None:
     """Verify RSA certificate."""
     session = Credentials(
         region=valid_region,
-        cert_filename="tests/assets/client_rsa2048.pem",
+        certificate_filename="tests/assets/client_rsa2048.pem",
         private_key_filename="tests/assets/client_rsa2048.key",
         duration=3600,
         profile_arn=profile_arn,
@@ -98,7 +98,7 @@ def test_session_ecc_good_passphrase() -> None:
     """Verify EC certificate and valid passphrase."""
     session = Credentials(
         region=valid_region,
-        cert_filename="tests/assets/client_secp384r1_passphrase.pem",
+        certificate_filename="tests/assets/client_secp384r1_passphrase.pem",
         private_key_filename="tests/assets/client_secp384r1_passphrase.key",
         duration=3600,
         profile_arn=profile_arn,
@@ -120,7 +120,7 @@ def test_session_ecc_bad_passphrase() -> None:
     with pytest.raises(ValueError, match=r"Bad decrypt. Incorrect password?"):
         Credentials(
             region=valid_region,
-            cert_filename="tests/assets/client_secp384r1_passphrase.pem",
+            certificate_filename="tests/assets/client_secp384r1_passphrase.pem",
             private_key_filename="tests/assets/client_secp384r1_passphrase.key",
             duration=3600,
             profile_arn=profile_arn,
@@ -142,7 +142,7 @@ def test_session_dsa() -> None:
     ):
         Credentials(
             region=valid_region,
-            cert_filename="tests/assets/client_dsa2048.pem",
+            certificate_filename="tests/assets/client_dsa2048.pem",
             private_key_filename="tests/assets/client_dsa2048.key",
             duration=3600,
             profile_arn=profile_arn,
@@ -160,7 +160,7 @@ def test_session_invalid_cert_file() -> None:
     ):
         Credentials(
             region=valid_region,
-            cert_filename="tests/assets/cert_file_does_not_exist.pem",
+            certificate_filename="tests/assets/cert_file_does_not_exist.pem",
             private_key_filename="tests/assets/client_rsa2048.key",
             duration=3600,
             profile_arn=profile_arn,
@@ -178,7 +178,7 @@ def test_session_invalid_privatekey_file() -> None:
     ):
         Credentials(
             region=valid_region,
-            cert_filename="tests/assets/client_rsa2048.pem",
+            certificate_filename="tests/assets/client_rsa2048.pem",
             private_key_filename="tests/assets/privatekey_file_does_not_exist.key",
             duration=3600,
             profile_arn=profile_arn,
@@ -199,7 +199,7 @@ def test_session_duration() -> None:
         ):
             Credentials(
                 region=valid_region,
-                cert_filename="tests/assets/client_rsa2048.pem",
+                certificate_filename="tests/assets/client_rsa2048.pem",
                 private_key_filename="tests/assets/client_rsa2048.key",
                 duration=duration,
                 profile_arn=profile_arn,
@@ -212,7 +212,7 @@ def test_session_duration() -> None:
 # Call get_credentials and verify HTTP call and mocked AWS response
 test_ec_session = Credentials(
     region=valid_region,
-    cert_filename="tests/assets/client_secp384r1.pem",
+    certificate_filename="tests/assets/client_secp384r1.pem",
     private_key_filename="tests/assets/client_secp384r1.key",
     duration=3600,
     profile_arn=profile_arn,
@@ -223,7 +223,7 @@ test_ec_session = Credentials(
 
 test_rsa_session = Credentials(
     region=valid_region,
-    cert_filename="tests/assets/client_rsa2048.pem",
+    certificate_filename="tests/assets/client_rsa2048.pem",
     private_key_filename="tests/assets/client_rsa2048.key",
     duration=3600,
     profile_arn=profile_arn,
