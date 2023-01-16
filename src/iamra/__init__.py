@@ -25,9 +25,9 @@ Basic usage with local private key and X.509 certificate:
     >>> session.session_token
     'IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJHMEUCIEz9JVF+nQce3rmd6OmfJAbTHNbG7RJLEEa6xECqEEbQAiEA6yd2mbe0akoO+np/EgrSA/
     ...
-    fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0=
+    fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0='
 
-:copyright: (c) 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+:copyright: (c) Gavin Adams
 :license: Apache License, Version 2.0, see LICENSE for more details.
 """
 

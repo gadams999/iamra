@@ -21,13 +21,22 @@
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [black]: https://github.com/psf/black
 
+IAM Roles Anywhere credentials helper.
+
+Iamra (ahy-em-rah) is a helper library to abstract and make obtaining temporary AWS IAM credentials easy through using [AWS Identity and Access Management Roles Anywhere](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html). Once configured in the cloud, Iamra sessions can be created, and then when credentials are needed, a single call will update the AWS credentials, that can be directly used via [boto3 session or client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
+
 ## Features
 
-- TODO
+- Single object per session, allowing for different scoped credentials
+- RSA and EC certificate / private key support
+- Certificate chain support for X.509 certificated signed by an intermediate Certificate Authority
+- Cached credentials within the expiration time to reduce unneeded calls to IAM Roles Anywhere, but can be force-refreshed as needed
 
 ## Requirements
 
-- TODO
+- Python 3.9 or later support
+- Creation of a trust anchor and profile [in the cloud](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/getting-started.html)
+- Valid X.509 certificate, private key, and optionally a certificate chain file
 
 ## Installation
 
@@ -39,7 +48,45 @@ $ pip install iamra
 
 ## Usage
 
-Please see the [Command-line Reference] for details.
+Basic usage with local private key and X.509 certificate:
+
+```python
+>>> import iamra
+>>> # Create a session object
+>>> iamra_session = iamra.Credentials(
+       region="us-east-1",
+       certificate_filename="client.pem",
+       private_key_filename="client.key",
+       duration=3600,
+       profile_arn="arn:aws:rolesanywhere:us-west-2:1234567890:profile/3d203fc0-7bba-4ec1-a6ef-697504ce1c72",
+       role_arn="arn:aws:iam::1234567890:role/IamRoleWithPermissionsToUse",
+       session_name="my_client_test_session",
+       trust_anchor_arn="arn:aws:rolesanywhere:us-west-2:1234567890:trust-anchor/29efd0b1-1b66-4df4-8ae7-e935716efd8e",
+)
+>>> # Invoke getting credentials from Roles Anywhere
+>>> iamra_session.get_credentials()
+>>> # Directly access credentials
+>>> iamra_session.access_key_id
+'ASIA5FLYQEXXXXXXZ27N'
+>>> iamra_session.secret_access_key
+'HhAViXXXXqIZrq/qENC4ahPqssXXXX9DEfx3mTv'
+>>> iamra_session.session_token
+'IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJHMEUCIEz9JVF+nQce3rmd6OmfJAbTHNbG7RJLEEa6xECqEEbQAiEA6yd2mbe0akoO+np/EgrSA/
+...
+fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0='
+>>> # Create a boto3 session
+>>> import boto3
+>>> aws_session = boto3.Session(
+        aws_access_key_id=iamra_session.access_key_id,
+        aws_secret_access_key=iamra_session.aws_secret_access_key,
+        aws_session_token=iamra_session.aws_session_token,
+        region_name="us-west-2",
+)
+```
+
+## Documentation
+
+[Here](https://iamra.readthedocs.io/en/latest/) is the documentation that covers advanced usage and module reference.
 
 ## Contributing
 
@@ -70,4 +117,3 @@ This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter]
 
 [license]: https://github.com/gadams999/iamra/blob/main/LICENSE
 [contributor guide]: https://github.com/gadams999/iamra/blob/main/CONTRIBUTING.md
-[command-line reference]: https://iamra.readthedocs.io/en/latest/usage.html

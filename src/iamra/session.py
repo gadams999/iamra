@@ -64,21 +64,55 @@ class Credentials:
     """Creates credentials object for vending temporary AWS credentials.
 
     Create and object ready to make a call to IAM Roles Anywhere for temporary
-    credentials. After creation, a call to `object.get_credentials()` will attempt to call
-    Roles Anywhere and obtain time-bound credentials and populate the objects attributes.
+    credentials. After creation, a call to ``get_credentials()`` will attempt to call
+    Roles Anywhere and obtain time-bound credentials and populate the object's attributes.
 
-    Attributes:
-        access_key_id (str): Access key obtained by get_credentials()
-        secret_access_key (str): Secret access key obtained by get_credentials()
-        session_token (str): Session token obtained by get_credentials() - must be provided
-        expiration (str): Expiration date and time of credentials in ISO 8601 (UTC) format
+    Args
+    ----
+    region: str
+        AWS Region
+    certificate_filename: str
+        Path to the certificate file
+    private_key_filename: str
+        Path to the private key file
+    passphrase: bytes
+        Optional passphrase for the private key file
+    certificate_chain_filename: str
+        File containing certificate chain to CA in trust anchor
+    duration: int
+        Duration of the credentials in seconds
+    profile_arn: str
+        ARN of the Roles Anywhere profile to use
+    role_arn: str
+        Name of the IAM role attached to the profile arn to use
+    session_name: str
+        Name of the Roles Anywhere session
+    trust_anchor_arn: str
+        ARN of the Roles Anywhere trust anchor that signed the certificate
 
-    Returns:
-        Credentials object
+    Attributes
+    ----------
+    access_key_id: str
+        Access key obtained by ``get_credentials()``
+    secret_access_key: str
+        Secret access key obtained by ``get_credentials()``
+    session_token: str
+        Session token obtained by ``get_credentials()`` - must be provided with ``access_key_id`` and
+        ``secret_access_key`` when calling AWS APIs
+    expiration: str
+        Expiration date and time of credentials in ISO 8601 (UTC) format
 
-    Raises:
-        FileNotFoundError: If certificate, private key, or chain files are not found
-        EncryptionAlgorithmError: Private key using algorithm other than the supported RSA or EC
+    Returns
+    -------
+    Credentials
+        Object for specific role and profile using provided X.509 credentials.
+
+    Raises
+    ------
+    FileNotFoundError
+        If certificate, private key, or chain files are not found
+    EncryptionAlgorithmError
+        Private key using algorithm other than the supported RSA or EC
     """
 
     def __init__(  # noqa: S107
