@@ -1,7 +1,3 @@
 # Usage
 
-```{eval-rst}
-.. click:: iamra.__main__:main
-    :prog: iamra
-    :nested: full
-```
+`iamra` is used with a X.509 certificate and corresponding private key to obtain temoprary AWS credentials.

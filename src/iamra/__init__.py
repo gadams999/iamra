@@ -17,7 +17,15 @@ Basic usage with local private key and X.509 certificate:
            session_name="my_client_test_session",
            trust_anchor_arn="arn:aws:rolesanywhere:us-west-2:1234567890:trust-anchor/29efd0b1-1b66-4df4-8ae7-e935716efd8e",
     )
-    >>>
+    >>> session.get_credentials()
+    >>> session.access_key_id
+    'ASIA5FLYQEXXXXXXZ27N'
+    >>> session.secret_access_key
+    'HhAViXXXXqIZrq/qENC4ahPqssXXXX9DEfx3mTv'
+    >>> session.session_token
+    'IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJHMEUCIEz9JVF+nQce3rmd6OmfJAbTHNbG7RJLEEa6xECqEEbQAiEA6yd2mbe0akoO+np/EgrSA/
+    ...
+    fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0=
 
 :copyright: (c) 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 :license: Apache License, Version 2.0, see LICENSE for more details.

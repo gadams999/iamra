@@ -61,17 +61,24 @@ class SessionResponse(TypedDict):
 
 
 class Credentials:
-    """Creates credentials object for temporary AWS credentials.
+    """Creates credentials object for vending temporary AWS credentials.
+
+    Create and object ready to make a call to IAM Roles Anywhere for temporary
+    credentials. After creation, a call to `object.get_credentials()` will attempt to call
+    Roles Anywhere and obtain time-bound credentials and populate the objects attributes.
 
     Attributes:
-        None
+        access_key_id (str): Access key obtained by get_credentials()
+        secret_access_key (str): Secret access key obtained by get_credentials()
+        session_token (str): Session token obtained by get_credentials() - must be provided
+        expiration (str): Expiration date and time of credentials in ISO 8601 (UTC) format
 
     Returns:
         Credentials object
 
     Raises:
-        FileNotFoundError: If certificate or private key files not found
-        EncryptionAlgorithmError: Private key other than RSA or EC
+        FileNotFoundError: If certificate, private key, or chain files are not found
+        EncryptionAlgorithmError: Private key using algorithm other than the supported RSA or EC
     """
 
     def __init__(  # noqa: S107
@@ -89,20 +96,17 @@ class Credentials:
     ):
         """Initialize object with session-specific details.
 
-        Create and object ready to make a call to IAM Roles Anywhere for temporary
-        credentials.
-
         Args:
-            region: AWS Region
-            certificate_filename: Path to the certificate file
-            private_key_filename: Path to the private key file
-            passphrase: Optional passphrase for the private key file
-            certificate_chain_filename: File containing certificate chain to CA in trust anchor
-            duration: Duration of the credentials in seconds
-            profile_arn: ARN of the Roles Anywhere profile to use
-            role_arn: Name of the IAM role attached to the profile arn to use
-            session_name: Name of the Roles Anywhere session
-            trust_anchor_arn: ARN of the Roles Anywhere trust anchor that signed the certificate
+            region (str): AWS Region
+            certificate_filename (str): Path to the certificate file
+            private_key_filename (str): Path to the private key file
+            passphrase (bytes): Optional passphrase for the private key file
+            certificate_chain_filename (str): File containing certificate chain to CA in trust anchor
+            duration (int): Duration of the credentials in seconds
+            profile_arn (str): ARN of the Roles Anywhere profile to use
+            role_arn (str): Name of the IAM role attached to the profile arn to use
+            session_name (str): Name of the Roles Anywhere session
+            trust_anchor_arn (str): ARN of the Roles Anywhere trust anchor that signed the certificate
 
         Raises:
             ValueError: Invalid attribute values
@@ -122,6 +126,10 @@ class Credentials:
             "sessionToken": "",
         }
         self.certificate_chain_der = certificate_chain_filename
+        self.access_key_id: str = ""
+        self.secret_access_key: str = ""
+        self.session_token: str = ""
+        self.expiration: str = ""
 
         self.__set_pki_values(
             private_key_filename,
@@ -271,7 +279,13 @@ class Credentials:
                 )
 
         # Set object credentials from response
-        self.credentials = r.json()["credentialSet"][0]["credentials"]
+        # self.credentials = r.json()["credentialSet"][0]["credentials"]
+        self.access_key_id = r.json()["credentialSet"][0]["credentials"]["accessKeyId"]
+        self.secret_access_key = r.json()["credentialSet"][0]["credentials"][
+            "secretAccessKey"
+        ]
+        self.session_token = r.json()["credentialSet"][0]["credentials"]["sessionToken"]
+        self.expiration = r.json()["credentialSet"][0]["credentials"]["expiration"]
 
         # Return complete response object
         return cast(SessionResponse, r.json())

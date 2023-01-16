@@ -127,7 +127,7 @@ def test_session_ecc_bad_passphrase() -> None:
             role_arn=role_arn,
             session_name="test_session",
             trust_anchor_arn=trust_anchor_arn,
-            passphrase=b"thisIsNotAGoodPassphrase",
+            passphrase=b"thisIsAnInvalidPassphrase",
         )
 
 
@@ -180,6 +180,25 @@ def test_session_invalid_privatekey_file() -> None:
             region=valid_region,
             certificate_filename="tests/assets/client_rsa2048.pem",
             private_key_filename="tests/assets/privatekey_file_does_not_exist.key",
+            duration=3600,
+            profile_arn=profile_arn,
+            role_arn=role_arn,
+            session_name="test_session",
+            trust_anchor_arn=trust_anchor_arn,
+        )
+
+
+def test_session_invalid_chain_file() -> None:
+    """Verify private key file not found."""
+    with pytest.raises(
+        FileNotFoundError,
+        match=r"Certificate chain tests/assets/invalid_chain_file.pem not found",
+    ):
+        Credentials(
+            region=valid_region,
+            certificate_filename="tests/assets/client_rsa2048.pem",
+            private_key_filename="tests/assets/client_rsa2048.key",
+            certificate_chain_filename="tests/assets/invalid_chain_file.pem",
             duration=3600,
             profile_arn=profile_arn,
             role_arn=role_arn,
@@ -276,3 +295,26 @@ def test_get_credentials_request_error(requests_mock) -> None:
                 exc=exception,
             )
             test_ec_session.get_credentials()
+
+
+def test_session_x509_chain(requests_mock) -> None:
+    """Verify certificate chain file can be read."""
+    session = Credentials(
+        region=valid_region,
+        certificate_filename="tests/assets/client_secp384r1_passphrase.pem",
+        private_key_filename="tests/assets/client_secp384r1_passphrase.key",
+        certificate_chain_filename="tests/assets/le-testing-ca-chain.pem",
+        duration=3600,
+        profile_arn=profile_arn,
+        role_arn=role_arn,
+        session_name="test_session",
+        trust_anchor_arn=trust_anchor_arn,
+        passphrase=b"foobar",
+    )
+    requests_mock.post(
+        f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
+        status_code=201,
+        json=valid_session_response,
+    )
+    response = session.get_credentials()
+    assert response == valid_session_response
