@@ -473,7 +473,6 @@ class Boto3Session(Credentials):
         """Refresh credentials by calling the session object method."""
         self.iamra_session.get_credentials()
 
-        print(f"expiry time: {self.iamra_session.expiration}")
         return {
             "access_key": self.iamra_session.access_key_id,
             "secret_key": self.iamra_session.secret_access_key,
