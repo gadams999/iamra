@@ -32,7 +32,8 @@ Basic usage with local private key and X.509 certificate:
 """
 
 # import classes to make available without second level import
+from .session import Boto3Session
 from .session import Credentials
 
 
-__all__ = ["Credentials"]
+__all__ = ["Credentials", "Boto3Session"]

@@ -20,9 +20,10 @@ python = "^3.9"
 cryptography = "^39.0.0"
 urllib3 = "^1.26.13"
 requests = "^2.28.1"
+boto3 = "^1.26.50"
 
-[tool.poetry.scripts]
-iamra = "iamra.__main__:main"
+# [tool.poetry.scripts]
+# iamra = "iamra.__main__:main"
 
 [tool.poetry.dev-dependencies]
 # [tool.poetry.group.dev.dependencies]
@@ -52,6 +53,12 @@ xdoctest = {extras = ["colors"], version = ">=0.15.10"}
 myst-parser = {version = ">=0.16.1"}
 types-requests = "^2.28.11.7"
 requests-mock = "^1.10.0"
+
+[tool.poetry.group.dev.dependencies]
+types-python-dateutil = "^2.8.19.5"
+types-boto3 = "^1.0.2"
+types-botocore = "^1.0.2"
+boto3-stubs = {extras = ["boto3"], version = "^1.26.50"}
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]

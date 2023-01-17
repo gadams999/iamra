@@ -1,5 +1,7 @@
-"""Test cases for the iamra module."""
-from time import time
+"""Test cases for the Credentials class."""
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 import pytest
 from requests.exceptions import ConnectionError
@@ -32,7 +34,9 @@ valid_session_response = {
             },
             "credentials": {
                 "accessKeyId": "test_access_key_id",
-                "expiration": time(),
+                "expiration": (
+                    datetime.now(timezone.utc) + timedelta(seconds=900)
+                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "secretAccessKey": "test_secret_access_key",
                 "sessionToken": "test_session_token",
             },
@@ -66,12 +70,6 @@ def test_default_session() -> None:
     assert session.role_arn == role_arn
     assert session.session_name == "test_session"
     assert session.trust_anchor_arn == trust_anchor_arn
-    assert session.credentials == {
-        "accessKeyId": "",
-        "expiration": "",
-        "secretAccessKey": "",
-        "sessionToken": "",
-    }
 
 
 def test_session_rsa() -> None:
@@ -86,12 +84,7 @@ def test_session_rsa() -> None:
         session_name="test_session",
         trust_anchor_arn=trust_anchor_arn,
     )
-    assert session.credentials == {
-        "accessKeyId": "",
-        "expiration": "",
-        "secretAccessKey": "",
-        "sessionToken": "",
-    }
+    assert session.access_key_id == ""
 
 
 def test_session_ecc_good_passphrase() -> None:
@@ -107,12 +100,7 @@ def test_session_ecc_good_passphrase() -> None:
         trust_anchor_arn=trust_anchor_arn,
         passphrase=b"foobar",
     )
-    assert session.credentials == {
-        "accessKeyId": "",
-        "expiration": "",
-        "secretAccessKey": "",
-        "sessionToken": "",
-    }
+    assert session.access_key_id == ""
 
 
 def test_session_ecc_bad_passphrase() -> None:
@@ -228,18 +216,6 @@ def test_session_duration() -> None:
             )
 
 
-# Call get_credentials and verify HTTP call and mocked AWS response
-test_ec_session = Credentials(
-    region=valid_region,
-    certificate_filename="tests/assets/client_secp384r1.pem",
-    private_key_filename="tests/assets/client_secp384r1.key",
-    duration=3600,
-    profile_arn=profile_arn,
-    role_arn=role_arn,
-    session_name="test_ec_session",
-    trust_anchor_arn=trust_anchor_arn,
-)
-
 test_rsa_session = Credentials(
     region=valid_region,
     certificate_filename="tests/assets/client_rsa2048.pem",
@@ -259,13 +235,19 @@ def test_get_credentials_ec_valid(requests_mock) -> None:
         status_code=201,
         json=valid_session_response,
     )
+    test_ec_session = Credentials(
+        region=valid_region,
+        certificate_filename="tests/assets/client_secp384r1.pem",
+        private_key_filename="tests/assets/client_secp384r1.key",
+        duration=3600,
+        profile_arn=profile_arn,
+        role_arn=role_arn,
+        # session_name="test_ec_session",
+        trust_anchor_arn=trust_anchor_arn,
+    )
     response = test_ec_session.get_credentials()
     assert response == valid_session_response
-
-    # Test without a session name
-    test_ec_session.session_name = None
-    response = test_ec_session.get_credentials()
-    assert response == valid_session_response
+    assert test_ec_session.session_name is None
 
 
 def test_get_credentials_rsa_valid(requests_mock) -> None:
@@ -281,12 +263,32 @@ def test_get_credentials_rsa_valid(requests_mock) -> None:
 
 def test_get_credentials_bad() -> None:
     """Make an actual call to the service with bad credentials."""
+    test_ec_session = Credentials(
+        region=valid_region,
+        certificate_filename="tests/assets/client_secp384r1.pem",
+        private_key_filename="tests/assets/client_secp384r1.key",
+        duration=3600,
+        profile_arn=profile_arn,
+        role_arn=role_arn,
+        session_name="test_ec_session",
+        trust_anchor_arn=trust_anchor_arn,
+    )
     with pytest.raises(UntrustedCertificateError):
         test_ec_session.get_credentials()
 
 
 def test_get_credentials_request_error(requests_mock) -> None:
     """Test requests module errors."""
+    test_ec_session = Credentials(
+        region=valid_region,
+        certificate_filename="tests/assets/client_secp384r1.pem",
+        private_key_filename="tests/assets/client_secp384r1.key",
+        duration=3600,
+        profile_arn=profile_arn,
+        role_arn=role_arn,
+        session_name="test_ec_session",
+        trust_anchor_arn=trust_anchor_arn,
+    )
     exception_type = [HTTPError, ConnectionError, Timeout, RequestException]
     for exception in exception_type:
         with pytest.raises(exception):
@@ -316,5 +318,40 @@ def test_session_x509_chain(requests_mock) -> None:
         status_code=201,
         json=valid_session_response,
     )
+    response = session.get_credentials()
+    assert response == valid_session_response
+
+    # Call again to test getting cached credentials
+    response = session.get_credentials()
+    assert response == valid_session_response
+
+
+def test_session_cached_credentials(requests_mock) -> None:
+    """Return cached credentials on second call."""
+    session = Credentials(
+        region=valid_region,
+        certificate_filename="tests/assets/client_secp384r1_passphrase.pem",
+        private_key_filename="tests/assets/client_secp384r1_passphrase.key",
+        certificate_chain_filename="tests/assets/le-testing-ca-chain.pem",
+        duration=3600,
+        profile_arn=profile_arn,
+        role_arn=role_arn,
+        session_name="test_session",
+        trust_anchor_arn=trust_anchor_arn,
+        passphrase=b"foobar",
+    )
+    requests_mock.post(
+        f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
+        status_code=201,
+        json=valid_session_response,
+    )
+    response = session.get_credentials()
+    assert response == valid_session_response
+
+    # modify expiration be in the past so current creds are considered stale
+    session.expiration = (datetime.now(timezone.utc) - timedelta(seconds=900)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    # test if expiration is set by calling again
     response = session.get_credentials()
     assert response == valid_session_response

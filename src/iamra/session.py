@@ -16,12 +16,16 @@ from typing import TypedDict
 from typing import cast
 
 import requests
+from boto3 import Session
+from botocore.credentials import RefreshableCredentials
+from botocore.session import get_session
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
+from dateutil import parser
 
 from .exceptions import EncryptionAlgorithmError
 from .exceptions import UntrustedCertificateError
@@ -153,12 +157,6 @@ class Credentials:
         self.role_arn: str = role_arn
         self.session_name = session_name
         self.trust_anchor_arn: str = trust_anchor_arn
-        self.credentials = {
-            "accessKeyId": "",
-            "expiration": "",
-            "secretAccessKey": "",
-            "sessionToken": "",
-        }
         self.certificate_chain_der = certificate_chain_filename
         self.access_key_id: str = ""
         self.secret_access_key: str = ""
@@ -199,6 +197,13 @@ class Credentials:
             SessionResponse: Full response object from IAM Roles Anywhere
 
         """
+        # Check if existing credentials are about to or have expired (within 60 seconds)
+        if self.expiration:
+            if (
+                parser.parse(self.expiration) - datetime.timedelta(seconds=60)
+            ) > datetime.datetime.now(datetime.timezone.utc):
+                return self._session_response
+
         # Build request
         # generate time and date for use in signing the request
         dt = datetime.datetime.utcnow()
@@ -223,7 +228,7 @@ class Credentials:
             "trustAnchorArn": self.trust_anchor_arn,
         }
         # Add optional sessionName if provided
-        if self.session_name is not None:
+        if self.session_name:
             payload["sessionName"] = self.session_name
 
         # Then dump to JSON string
@@ -313,7 +318,6 @@ class Credentials:
                 )
 
         # Set object credentials from response
-        # self.credentials = r.json()["credentialSet"][0]["credentials"]
         self.access_key_id = r.json()["credentialSet"][0]["credentials"]["accessKeyId"]
         self.secret_access_key = r.json()["credentialSet"][0]["credentials"][
             "secretAccessKey"
@@ -321,8 +325,11 @@ class Credentials:
         self.session_token = r.json()["credentialSet"][0]["credentials"]["sessionToken"]
         self.expiration = r.json()["credentialSet"][0]["credentials"]["expiration"]
 
+        # Store the most current response object
+        self._session_response: SessionResponse = cast(SessionResponse, r.json())
+
         # Return complete response object
-        return cast(SessionResponse, r.json())
+        return self._session_response
 
     def __set_pki_values(  # noqa: C901
         self,
@@ -417,3 +424,52 @@ class Credentials:
         else:  # pragma: no cover
             raise TypeError("Unsupported key type")
         return signature.hex()
+
+
+class Boto3Session(Credentials):
+    """Creates a Boto3 session with a provided iamra Credentials with automatic credential refresh.
+
+    Creates a Boto3 session with the provided `iamra.Credentials` object to automatically refresh
+    IAM permissions within one minute, or after the credentials are due to expire. The returned object
+    is set to the region defined when creating the `iamra.Credentials` object.
+
+    Args
+    ----
+    iamra_session: Credentials
+        Iamra session object to request and update credentials
+
+    Returns
+    -------
+    Boto3Session
+        Object for use with boto3 session and client calls.
+    """
+
+    def __init__(self, iamra_session: Credentials):
+        """Create Boto3 session based on provided `iamra.Credentials`.
+
+        Args:
+            iamra_session (Credentials): valid session
+        """
+        self.iamra_session = iamra_session
+
+        botocore_session = get_session()
+        session_credentials = RefreshableCredentials.create_from_metadata(
+            metadata=self._refresh(),
+            refresh_using=self._refresh,
+            method="sts-assume-role",
+        )
+        botocore_session._credentials = session_credentials  # type: ignore
+        botocore_session.set_config_variable("region", self.iamra_session.region)
+        self.session = Session(botocore_session=botocore_session)
+
+    def _refresh(self):
+        """Refresh credentials by calling the session object method."""
+        self.iamra_session.get_credentials()
+
+        print(f"expiry time: {self.iamra_session.expiration}")
+        return {
+            "access_key": self.iamra_session.access_key_id,
+            "secret_key": self.iamra_session.secret_access_key,
+            "token": self.iamra_session.session_token,
+            "expiry_time": self.iamra_session.expiration,
+        }

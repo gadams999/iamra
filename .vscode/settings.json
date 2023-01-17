@@ -5,5 +5,13 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.python"
     },
-    "cSpell.words": ["errc", "errh", "errt", "iamra", "rolesanywhere", "secp"]
+    "cSpell.words": [
+        "dateutil",
+        "errc",
+        "errh",
+        "errt",
+        "iamra",
+        "rolesanywhere",
+        "secp"
+    ]
 }
