@@ -427,20 +427,21 @@ class Credentials:
 
 
 class Boto3Session(Credentials):
-    """Creates a Boto3 session with a provided iamra Credentials with automatic credential refresh.
+    """Creates a Boto3 session with a provided ``iamra.Credentials`` object with automatic credential refresh.
 
-    Creates a Boto3 session with the provided `iamra.Credentials` object to automatically refresh
-    IAM permissions within one minute, or after the credentials are due to expire. The returned object
-    is set to the region defined when creating the `iamra.Credentials` object.
+    This class creates a Boto3 session with the provided ``iamra.Credentials`` object, which automatically
+    refreshes IAM permissions when they are due to expire, by requesting refreshed credentials via
+    IAM Roles Anywhere. The returned object is set to the region defined when creating the
+    `iamra.Credentials` object.
 
     Args
     ----
     iamra_session: Credentials
-        Iamra session object to request and update credentials
+        ``iamra.Credentials`` session object to request and update credentials as needed
 
     Attributes
     ----------
-    session (boto3.Session):
+    session: boto3.Session
         Boto3 session object for use in creating other Boto3 resources such as ``client``, with
         automated refresh of credentials using Roles Anywhere
 
