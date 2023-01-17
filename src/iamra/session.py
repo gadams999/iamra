@@ -42,7 +42,7 @@ class CredentialsType(TypedDict):
     """CredentialsType."""
 
     accessKeyId: str  # noqa: N815
-    expiration: float
+    expiration: str
     secretAccessKey: str  # noqa: N815
     sessionToken: str  # noqa: N815
 
@@ -176,7 +176,7 @@ class Credentials:
                 "Duration must be at least 15 minutes and less than 1 hour"
             )
 
-    def get_credentials(self) -> Optional[SessionResponse]:  # noqa: C901
+    def get_credentials(self) -> SessionResponse:  # noqa: C901
         """Generate temporary AWS credentials.
 
         Call IAM Roles Anywhere to vend credentials. Upon success
