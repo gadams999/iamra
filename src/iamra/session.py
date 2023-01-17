@@ -76,13 +76,13 @@ class Credentials:
     region: str
         AWS Region
     certificate_filename: str
-        Path to the certificate file
+        Path to the certificate file, in PEM format
     private_key_filename: str
-        Path to the private key file
+        Path to the private key file, in PEM format
     passphrase: bytes
         Optional passphrase for the private key file
     certificate_chain_filename: str
-        File containing certificate chain to CA in trust anchor
+        File containing certificate chain to CA in trust anchor, in PEM format
     duration: int
         Duration of the credentials in seconds
     profile_arn: str
@@ -437,6 +437,12 @@ class Boto3Session(Credentials):
     ----
     iamra_session: Credentials
         Iamra session object to request and update credentials
+
+    Attributes
+    ----------
+    session (boto3.Session):
+        Boto3 session object for use in creating other Boto3 resources such as ``client``, with
+        automated refresh of credentials using Roles Anywhere
 
     Returns
     -------
