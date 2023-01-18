@@ -1,4 +1,4 @@
-name: Check documentation
+name: GitHub.io Docs
 on: [push, pull_request]
 jobs:
   docs:
@@ -12,6 +12,7 @@ jobs:
       - run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pip install --constraint=.github/workflows/constraints.txt nox
+          pip install --constraint=.github/workflows/constraints.txt poetry
           pip install --constraint=.github/workflows/constraints.txt nox-poetry
       - name: Build documentation
         run: nox --force-color --session=docs
