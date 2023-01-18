@@ -1,3 +1,6 @@
+<!-- cSpell:ignore Codecov, FLYQEXXXXXXZ, Pqss, Xdlc, cjolowicz
+}] -->
+
 # Iamra
 
 [![PyPI](https://img.shields.io/pypi/v/iamra.svg)][pypi_]
@@ -42,9 +45,13 @@ Iamra (ahy-em-rah) is a helper library to abstract and make obtaining temporary 
 
 You can install _Iamra_ via [pip] from [PyPI]:
 
+<!-- markdownlint-disable -->
+
 ```console
 $ pip install iamra
 ```
+
+<!-- markdownlint-restore -->
 
 ## Usage
 
@@ -71,17 +78,7 @@ Basic usage with local private key and X.509 certificate:
 >>> iamra_session.secret_access_key
 'HhAViXXXXqIZrq/qENC4ahPqssXXXX9DEfx3mTv'
 >>> iamra_session.session_token
-'IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJHMEUCIEz9JVF+nQce3rmd6OmfJAbTHNbG7RJLEEa6xECqEEbQAiEA6yd2mbe0akoO+np/EgrSA/
-...
-fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0='
->>> # Create a boto3 session
->>> import boto3
->>> aws_session = boto3.Session(
-        aws_access_key_id=iamra_session.access_key_id,
-        aws_secret_access_key=iamra_session.aws_secret_access_key,
-        aws_session_token=iamra_session.aws_session_token,
-        region_name="us-west-2",
-)
+'IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJ...fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0='
 ```
 
 ## Documentation

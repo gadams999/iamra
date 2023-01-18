@@ -6,10 +6,12 @@
         "editor.defaultFormatter": "ms-python.python"
     },
     "cSpell.words": [
+        "Cookiecutter",
         "dateutil",
         "errc",
         "errh",
         "errt",
+        "Hypermodern",
         "iamra",
         "rolesanywhere",
         "secp"
