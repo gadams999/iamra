@@ -83,7 +83,7 @@ Basic usage with local private key and X.509 certificate:
 
 ## Documentation
 
-[Here](https://iamra.readthedocs.io/en/latest/) is the documentation that covers advanced usage and module reference.
+[Here](https://iamra.readthedocs.io/en/latest/) is the documentation that covers additional usage and module reference.
 
 ## Contributing
 

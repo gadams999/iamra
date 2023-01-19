@@ -162,6 +162,7 @@ class Credentials:
         self.secret_access_key: str = ""
         self.session_token: str = ""
         self.expiration: str = ""
+        self.boto3_session: Optional[Session] = None
 
         self.__set_pki_values(
             private_key_filename,
@@ -331,6 +332,37 @@ class Credentials:
         # Return complete response object
         return self._session_response
 
+    def get_boto3_session(self, region: Optional[str] = None) -> Session:
+        """Returns a boto3 session object with automatic credential refresh.
+
+        Only a single boto3 session object should be associated with the
+        credential session. Creating new ones still uses the underlying credentials.
+
+        Args
+        ----
+        None
+
+        Attributes
+        ----------
+        None
+
+        Returns
+        -------
+        boto3.session
+            Boto3 session using ``Credentials`` for constructing clients
+        """
+        botocore_session = get_session()
+        session_credentials = RefreshableCredentials.create_from_metadata(
+            metadata=self._refresh(),
+            refresh_using=self._refresh,
+            method="sts-assume-role",
+        )
+        botocore_session._credentials = session_credentials  # type: ignore
+        botocore_session.set_config_variable(
+            "region", region if region else self.region
+        )
+        return Session(botocore_session=botocore_session)
+
     def __set_pki_values(  # noqa: C901
         self,
         private_key_filename: str,
@@ -425,57 +457,13 @@ class Credentials:
             raise TypeError("Unsupported key type")
         return signature.hex()
 
-
-class Boto3Session(Credentials):
-    """Creates a Boto3 session with a provided ``iamra.Credentials`` object with automatic credential refresh.
-
-    This class creates a Boto3 session with the provided ``iamra.Credentials`` object, which automatically
-    refreshes IAM permissions when they are due to expire, by requesting refreshed credentials via
-    IAM Roles Anywhere. The returned object is set to the region defined when creating the
-    `iamra.Credentials` object.
-
-    Args
-    ----
-    iamra_session: Credentials
-        ``iamra.Credentials`` session object to request and update credentials as needed
-
-    Attributes
-    ----------
-    session: boto3.Session
-        Boto3 session object for use in creating other Boto3 resources such as ``client``, with
-        automated refresh of credentials using Roles Anywhere
-
-    Returns
-    -------
-    Boto3Session
-        Object for use with boto3 session and client calls.
-    """
-
-    def __init__(self, iamra_session: Credentials):
-        """Create Boto3 session based on provided `iamra.Credentials`.
-
-        Args:
-            iamra_session (Credentials): valid session
-        """
-        self.iamra_session = iamra_session
-
-        botocore_session = get_session()
-        session_credentials = RefreshableCredentials.create_from_metadata(
-            metadata=self._refresh(),
-            refresh_using=self._refresh,
-            method="sts-assume-role",
-        )
-        botocore_session._credentials = session_credentials  # type: ignore
-        botocore_session.set_config_variable("region", self.iamra_session.region)
-        self.session = Session(botocore_session=botocore_session)
-
-    def _refresh(self):
+    def _refresh(self) -> dict:
         """Refresh credentials by calling the session object method."""
-        self.iamra_session.get_credentials()
+        self.get_credentials()
 
         return {
-            "access_key": self.iamra_session.access_key_id,
-            "secret_key": self.iamra_session.secret_access_key,
-            "token": self.iamra_session.session_token,
-            "expiry_time": self.iamra_session.expiration,
+            "access_key": self.access_key_id,
+            "secret_key": self.secret_access_key,
+            "token": self.session_token,
+            "expiry_time": self.expiration,
         }
