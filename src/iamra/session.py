@@ -340,7 +340,10 @@ class Credentials:
 
         Args
         ----
-        None
+        region: str
+            Optional argument to define which AWS Region is used for boto3 client calls.
+            This can be different than the region defined when creating the ``Credentials``
+            session.
 
         Attributes
         ----------
