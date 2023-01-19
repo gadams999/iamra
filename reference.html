@@ -241,41 +241,6 @@ temporary AWS IAM credentials easy. See the documentation at:
 </dd>
 </dl>
 <dl class="py class">
-<dt class="sig sig-object py" id="iamra.Boto3Session">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">iamra.</span></span><span class="sig-name descname"><span class="pre">Boto3Session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iamra_session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#iamra.Credentials" title="iamra.session.Credentials"><span class="pre">Credentials</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#iamra.Boto3Session" title="Permalink to this definition">#</a></dt>
-<dd><p>Creates a Boto3 session with a provided <code class="docutils literal notranslate"><span class="pre">iamra.Credentials</span></code> object with automatic credential refresh.</p>
-<p>This class creates a Boto3 session with the provided <code class="docutils literal notranslate"><span class="pre">iamra.Credentials</span></code> object, which automatically
-refreshes IAM permissions when they are due to expire, by requesting refreshed credentials via
-IAM Roles Anywhere. The returned object is set to the region defined when creating the
-<cite>iamra.Credentials</cite> object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>iamra_session</strong> (<a class="reference internal" href="#iamra.Credentials" title="iamra.Credentials"><em>Credentials</em></a>) – <code class="docutils literal notranslate"><span class="pre">iamra.Credentials</span></code> session object to request and update credentials as needed</p>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="iamra.Boto3Session.session">
-<span class="sig-name descname"><span class="pre">session</span></span><a class="headerlink" href="#iamra.Boto3Session.session" title="Permalink to this definition">#</a></dt>
-<dd><p>Boto3 session object for use in creating other Boto3 resources such as <code class="docutils literal notranslate"><span class="pre">client</span></code>, with
-automated refresh of credentials using Roles Anywhere</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>boto3.Session</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Object for use with boto3 session and client calls.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#iamra.Boto3Session" title="iamra.Boto3Session">Boto3Session</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="iamra.Credentials">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">iamra.</span></span><span class="sig-name descname"><span class="pre">Credentials</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">private_key_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_arn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role_arn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trust_anchor_arn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passphrase</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate_chain_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#iamra.Credentials" title="Permalink to this definition">#</a></dt>
 <dd><p>Creates credentials object for vending temporary AWS credentials.</p>
@@ -357,6 +322,32 @@ Roles Anywhere and obtain time-bound credentials and populate the object’s att
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="iamra.Credentials.get_boto3_session">
+<span class="sig-name descname"><span class="pre">get_boto3_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Session</span></span></span><a class="headerlink" href="#iamra.Credentials.get_boto3_session" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns a boto3 session object with automatic credential refresh.</p>
+<p>Only a single boto3 session object should be associated with the
+credential session. Creating new ones still uses the underlying credentials.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="iamra.Credentials.None">
+<span class="sig-name descname"><span class="pre">None</span></span><a class="headerlink" href="#iamra.Credentials.None" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Boto3 session using <code class="docutils literal notranslate"><span class="pre">Credentials</span></code> for constructing clients</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>boto3.session</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="iamra.Credentials.get_credentials">
 <span class="sig-name descname"><span class="pre">get_credentials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SessionResponse</span></span></span><a class="headerlink" href="#iamra.Credentials.get_credentials" title="Permalink to this definition">#</a></dt>
@@ -449,15 +440,13 @@ full session response object.</p>
 <li><a class="reference internal" href="#">API Reference</a><ul>
 <li><a class="reference internal" href="#developer-interface">Developer Interface</a></li>
 <li><a class="reference internal" href="#module-iamra">iamra</a><ul>
-<li><a class="reference internal" href="#iamra.Boto3Session"><code class="docutils literal notranslate"><span class="pre">Boto3Session</span></code></a><ul>
-<li><a class="reference internal" href="#iamra.Boto3Session.session"><code class="docutils literal notranslate"><span class="pre">Boto3Session.session</span></code></a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#iamra.Credentials"><code class="docutils literal notranslate"><span class="pre">Credentials</span></code></a><ul>
 <li><a class="reference internal" href="#iamra.Credentials.access_key_id"><code class="docutils literal notranslate"><span class="pre">Credentials.access_key_id</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.secret_access_key"><code class="docutils literal notranslate"><span class="pre">Credentials.secret_access_key</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.session_token"><code class="docutils literal notranslate"><span class="pre">Credentials.session_token</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.expiration"><code class="docutils literal notranslate"><span class="pre">Credentials.expiration</span></code></a></li>
+<li><a class="reference internal" href="#iamra.Credentials.get_boto3_session"><code class="docutils literal notranslate"><span class="pre">Credentials.get_boto3_session()</span></code></a></li>
+<li><a class="reference internal" href="#iamra.Credentials.None"><code class="docutils literal notranslate"><span class="pre">Credentials.None</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.get_credentials"><code class="docutils literal notranslate"><span class="pre">Credentials.get_credentials()</span></code></a></li>
 </ul>
 </li>

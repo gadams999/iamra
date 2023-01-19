@@ -197,7 +197,68 @@
         <article role="main">
           <section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">iamra</span></code> is used with a X.509 certificate and corresponding private key to obtain temporary AWS credentials. See the <a class="reference internal" href="reference.html"><span class="doc std std-doc">Basic Usage</span></a> example toe get started.</p>
+<p><code class="docutils literal notranslate"><span class="pre">iamra</span></code> is used with a X.509 certificate and corresponding private key to obtain temporary AWS credentials. See the <a class="reference internal" href="reference.html"><span class="doc std std-doc">Basic Usage</span></a> example to get started.</p>
+<p>An <em>Iamra</em> session is created by providing a Roles Anywhere trusted X.509 certificate and private key in PEM format, along with the specific Roles Anywhere <em>trust anchor</em>, <em>IAM role</em>, and the Roles Anywhere <em>profile</em> that scopes down permissions of the <em>IAM role</em>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">iamra</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">iamra</span><span class="o">.</span><span class="n">Credentials</span><span class="p">(</span>
+    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-west-2&quot;</span><span class="p">,</span>
+    <span class="n">certificate_filename</span><span class="o">=</span><span class="s2">&quot;client.crt.pem&quot;</span><span class="p">,</span>
+    <span class="n">private_key_filename</span><span class="o">=</span><span class="s2">&quot;client.key.pem&quot;</span><span class="p">,</span>
+    <span class="n">certificate_chain_filename</span><span class="o">=</span><span class="s2">&quot;ca_chain_bundle.pem&quot;</span><span class="p">,</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+    <span class="n">profile_arn</span><span class="o">=</span><span class="s2">&quot;arn:aws:rolesanywhere:us-west-2:1234567890:profile/3d203fc0-7bba-4ec1-a6ef-697504ce1c72&quot;</span><span class="p">,</span>
+    <span class="n">role_arn</span><span class="o">=</span><span class="s2">&quot;arn:aws:iam::1234567890:role/RolesAnywhereTestRole&quot;</span><span class="p">,</span>
+    <span class="n">session_name</span><span class="o">=</span><span class="s2">&quot;my_client_session&quot;</span><span class="p">,</span>
+    <span class="n">trust_anchor_arn</span><span class="o">=</span><span class="s2">&quot;arn:aws:rolesanywhere:us-west-2:1234567890:trust-anchor/29efd0b1-1b66-4df4-8ae7-e935716efd8e&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Once created, there are two methods that can be called, <code class="docutils literal notranslate"><span class="pre">get_credentials()</span></code> or <code class="docutils literal notranslate"><span class="pre">get_boto3_session()</span></code>. If a temporary set of credentials is needed for a single AWS call, or an SDK other than boto3 is being used, calling <code class="docutils literal notranslate"><span class="pre">get_credentials()</span></code> will populate the session attributes with AWS credentials.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">session</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">access_key_id</span><span class="p">)</span>
+<span class="n">ASIA5FLYQEXXXXXXZ27N</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">secret_access_key</span><span class="p">)</span>
+<span class="n">HhAViXXXXqIZrq</span><span class="o">/</span><span class="n">qENC4ahPqssXXXX9DEfx3mTv</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">session_token</span><span class="p">)</span>
+<span class="n">IQoJb3JpZ2luX2VjEMf</span><span class="o">//////////</span><span class="n">wEaCXVzLXdlc3QtMiJ</span><span class="o">...</span><span class="n">fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH</span><span class="o">+</span><span class="n">OnaGl92OxAho3j0</span><span class="o">=</span>
+</pre></div>
+</div>
+<p>However, it is expected most will use this in conjunction with boto3. Calling <code class="docutils literal notranslate"><span class="pre">get_boto3_session()</span></code> will return a boto3 <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html">session</a> (or service client interface). This can then be used to create boto3 clients to make AWS service calls. Also, the returned session object will refresh its’ credentials as they get near, or go beyond, the expiration time, without any other operations required.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">boto3</span>
+
+<span class="n">boto3_session</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span>
+<span class="n">iot_client</span> <span class="o">=</span> <span class="n">boto3_session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;iot&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">iot_client</span><span class="o">.</span><span class="n">describe_thing</span><span class="p">(</span><span class="n">thingName</span><span class="o">=</span><span class="s2">&quot;my_iot_device&quot;</span><span class="p">))</span>
+<span class="p">{</span><span class="s1">&#39;ResponseMetadata&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;RequestId&#39;</span><span class="p">:</span> <span class="s1">&#39;ac77ac49-0dae-xxxx-afe1-84a50d57bf4d&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;HTTPStatusCode&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+  <span class="s1">&#39;HTTPHeaders&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="s1">&#39;Wed, 18 Jan 2023 21:17:01 GMT&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;content-type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;content-length&#39;</span><span class="p">:</span> <span class="s1">&#39;229&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;connection&#39;</span><span class="p">:</span> <span class="s1">&#39;keep-alive&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;x-amzn-requestid&#39;</span><span class="p">:</span> <span class="s1">&#39;ac77ac49-0dae-xxxx-afe1-84a50d57bf4d&#39;</span><span class="p">},</span>
+  <span class="s1">&#39;RetryAttempts&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+ <span class="s1">&#39;defaultClientId&#39;</span><span class="p">:</span> <span class="s1">&#39;my_iot_device&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;thingName&#39;</span><span class="p">:</span> <span class="s1">&#39;my_iot_device&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;thingId&#39;</span><span class="p">:</span> <span class="s1">&#39;6cac460d-2612-xxxx-b8ff-b75818c0b788&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;thingArn&#39;</span><span class="p">:</span> <span class="s1">&#39;arn:aws:iot:us-west-2:1234567890:thing/my_iot_device&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="p">{},</span>
+ <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> Only create a single boto3 session from an Iamra object. If different credentials or region are required, create additional Iamra sessions for each corresponding boto3 session. For example, the two sessions below are created from <code class="docutils literal notranslate"><span class="pre">us-east-1</span></code> Roles Anywhere configuration, but the second European session for AWS service calls specifies the region to use when making those calls via boto3.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">iamra</span>
+
+<span class="c1"># region: us-east-1</span>
+<span class="n">us_session</span> <span class="o">=</span> <span class="n">iamra</span><span class="o">.</span><span class="n">Credentials</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">boto3_session_us</span> <span class="o">=</span> <span class="n">us_session</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">()</span>
+
+<span class="c1"># Credentials still using us-east-1 for Roles Anywhere</span>
+<span class="n">europe_session</span> <span class="o">=</span> <span class="n">iamra</span><span class="o">.</span><span class="n">Credentials</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">boto3_session_europe</span> <span class="o">=</span> <span class="n">europe_session</span><span class="o">.</span><span class="n">get_boto3_session</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="s2">&quot;eu-central-1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Please open an issue if there are other features you would like added to the module!</p>
 </section>
 
         </article>
