@@ -335,18 +335,11 @@ credential session. Creating new ones still uses the underlying credentials.</p>
 This can be different than the region defined when creating the <code class="docutils literal notranslate"><span class="pre">Credentials</span></code>
 session.</p>
 </dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="iamra.Credentials.None">
-<span class="sig-name descname"><span class="pre">None</span></span><a class="headerlink" href="#iamra.Credentials.None" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Boto3 session using <code class="docutils literal notranslate"><span class="pre">Credentials</span></code> for constructing clients</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Boto3 session using <code class="docutils literal notranslate"><span class="pre">Credentials</span></code> for authorizing boto3 client operations</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>boto3.session</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>boto3.session</p>
 </dd>
 </dl>
 </dd></dl>
@@ -449,7 +442,6 @@ full session response object.</p>
 <li><a class="reference internal" href="#iamra.Credentials.session_token"><code class="docutils literal notranslate"><span class="pre">Credentials.session_token</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.expiration"><code class="docutils literal notranslate"><span class="pre">Credentials.expiration</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.get_boto3_session"><code class="docutils literal notranslate"><span class="pre">Credentials.get_boto3_session()</span></code></a></li>
-<li><a class="reference internal" href="#iamra.Credentials.None"><code class="docutils literal notranslate"><span class="pre">Credentials.None</span></code></a></li>
 <li><a class="reference internal" href="#iamra.Credentials.get_credentials"><code class="docutils literal notranslate"><span class="pre">Credentials.get_credentials()</span></code></a></li>
 </ul>
 </li>
