@@ -9,3 +9,5 @@
 /src/*.egg-info/
 __pycache__/
 /temp/
+.tool-versions
+.envrc
