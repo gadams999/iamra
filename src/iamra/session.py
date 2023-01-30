@@ -345,14 +345,10 @@ class Credentials:
             This can be different than the region defined when creating the ``Credentials``
             session.
 
-        Attributes
-        ----------
-        None
-
         Returns
         -------
-        boto3.session
-            Boto3 session using ``Credentials`` for constructing clients
+        boto3.session:
+            Boto3 session using ``Credentials`` for authorizing boto3 client operations
         """
         botocore_session = get_session()
         session_credentials = RefreshableCredentials.create_from_metadata(
