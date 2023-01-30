@@ -208,7 +208,8 @@
 temporary AWS IAM credentials easy. See the documentation at:
 <a class="reference external" href="https://pypi.org/project/iamra">https://pypi.org/project/iamra</a></p>
 <p>Basic usage with local private key and X.509 certificate:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iamra</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iamra</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">iamra</span><span class="o">.</span><span class="n">Credentials</span><span class="p">(</span>
 <span class="go">        region=&quot;us-east-1&quot;,</span>
 <span class="go">        certificate_filename=&quot;client.pem&quot;,</span>
@@ -218,16 +219,16 @@ temporary AWS IAM credentials easy. See the documentation at:
 <span class="go">        role_arn=&quot;arn:aws:iam::1234567890:role/IamRoleWithPermissionsToUse&quot;,</span>
 <span class="go">        session_name=&quot;my_client_test_session&quot;,</span>
 <span class="go">        trust_anchor_arn=&quot;arn:aws:rolesanywhere:us-west-2:1234567890:trust-anchor/29efd0b1-1b66-4df4-8ae7-e935716efd8e&quot;,</span>
-<span class="go"> )</span>
-<span class="go"> &gt;&gt;&gt; session.get_credentials()</span>
-<span class="go"> &gt;&gt;&gt; session.access_key_id</span>
-<span class="go"> &#39;ASIA5FLYQEXXXXXXZ27N&#39;</span>
-<span class="go"> &gt;&gt;&gt; session.secret_access_key</span>
-<span class="go"> &#39;HhAViXXXXqIZrq/qENC4ahPqssXXXX9DEfx3mTv&#39;</span>
-<span class="go"> &gt;&gt;&gt; session.session_token</span>
-<span class="go"> &#39;IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJHMEUCIEz9JVF+nQce3rmd6OmfJAbTHNbG7RJLEEa6xECqEEbQAiEA6yd2mbe0akoO+np/EgrSA/</span>
-<span class="go"> ...</span>
-<span class="go"> fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0=&#39;</span>
+<span class="go">    )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">access_key_id</span>
+<span class="go">&#39;ASIA5FLYQEXXXXXXZ27N&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">secret_access_key</span>
+<span class="go">&#39;HhAViXXXXqIZrq/qENC4ahPqssXXXX9DEfx3mTv&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">session_token</span>
+<span class="go">&#39;IQoJb3JpZ2luX2VjEMf//////////wEaCXVzLXdlc3QtMiJHMEUCIEz9JVF+nQce3rmd6OmfJAbTHNbG7RJLEEa6xECqEEbQAiEA6yd2mbe0akoO+np/EgrSA/</span>
+<span class="gp">...</span>
+<span class="go">fARzrFrr0VEpiqFY42NWjFdFUhdLkPiuhsLoTYH+OnaGl92OxAho3j0=&#39;</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
