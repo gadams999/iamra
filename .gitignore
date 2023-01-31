@@ -11,3 +11,4 @@ __pycache__/
 /temp/
 .tool-versions
 .envrc
+.iamra-build
