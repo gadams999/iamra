@@ -67,7 +67,7 @@ class SessionResponse(TypedDict):
 class Credentials:
     """Creates credentials object for vending temporary AWS credentials.
 
-    Create and object ready to make a call to IAM Roles Anywhere for temporary
+    Create an object ready to make a call to IAM Roles Anywhere for temporary
     credentials. After creation, a call to ``get_credentials()`` will attempt to call
     Roles Anywhere and obtain time-bound credentials and populate the object's attributes.
 
