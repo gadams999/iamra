@@ -230,7 +230,7 @@ test_rsa_session = Credentials(
 
 def test_get_credentials_ec_valid(requests_mock) -> None:
     """Use session fixture to exercise credential calls with EC certificate."""
-    requests_mock.post(
+    requests_mock.post(  # noqa: S113
         f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
         status_code=201,
         json=valid_session_response,
@@ -252,7 +252,7 @@ def test_get_credentials_ec_valid(requests_mock) -> None:
 
 def test_get_credentials_rsa_valid(requests_mock) -> None:
     """Use session fixture to exercise credential calls with RSA certificate."""
-    requests_mock.post(
+    requests_mock.post(  # noqa: S113
         f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
         status_code=201,
         json=valid_session_response,
@@ -292,7 +292,7 @@ def test_get_credentials_request_error(requests_mock) -> None:
     exception_type = [HTTPError, ConnectionError, Timeout, RequestException]
     for exception in exception_type:
         with pytest.raises(exception):
-            requests_mock.post(
+            requests_mock.post(  # noqa: S113
                 f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
                 exc=exception,
             )
@@ -313,7 +313,7 @@ def test_session_x509_chain(requests_mock) -> None:
         trust_anchor_arn=trust_anchor_arn,
         passphrase=b"foobar",
     )
-    requests_mock.post(
+    requests_mock.post(  # noqa: S113
         f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
         status_code=201,
         json=valid_session_response,
@@ -340,7 +340,7 @@ def test_session_cached_credentials(requests_mock) -> None:
         trust_anchor_arn=trust_anchor_arn,
         passphrase=b"foobar",
     )
-    requests_mock.post(
+    requests_mock.post(  # noqa: S113
         f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
         status_code=201,
         json=valid_session_response,

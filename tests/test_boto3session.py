@@ -45,7 +45,7 @@ valid_session_response = {
 
 def test_boto3_session_default(requests_mock) -> None:
     """Create boto3 session object."""
-    requests_mock.post(
+    requests_mock.post(  # noqa: S113
         f"https://rolesanywhere.{valid_region}.amazonaws.com/sessions",
         status_code=201,
         json=valid_session_response,

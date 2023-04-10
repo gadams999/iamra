@@ -295,6 +295,7 @@ class Credentials:
                 f"https://rolesanywhere.{self.region}.amazonaws.com/sessions",
                 headers=http_headers,
                 data=payload_str.encode("utf-8"),
+                timeout=30,
             )
         except requests.exceptions.HTTPError as errh:
             raise requests.exceptions.HTTPError(f"HTTP error: {errh}") from errh
