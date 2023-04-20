@@ -2292,14 +2292,14 @@ test = ["mypy (>=0.991)", "pytest (>=7)"]
 
 [[package]]
 name = "types-awscrt"
-version = "0.16.13.post1"
+version = "0.16.15"
 description = "Type annotations and code completion for awscrt"
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "types_awscrt-0.16.13.post1-py3-none-any.whl", hash = "sha256:697c52422bc3f24302402139ec4511723feb990b5a36a8505a941bbbee1322d5"},
-    {file = "types_awscrt-0.16.13.post1.tar.gz", hash = "sha256:7f537fc433264a748145ae1148a7a61b33b6f5492d73ef51e5deb1ff8d5d1787"},
+    {file = "types_awscrt-0.16.15-py3-none-any.whl", hash = "sha256:89d052f4c018ee0fc5d6ed8ae64c2e1f9f1078a2f9a29f5246a42af72f7f4e77"},
+    {file = "types_awscrt-0.16.15.tar.gz", hash = "sha256:9f858e9b6237b58bc550d0fb5785758aba2b4e454a71edf81882b5908b37174c"},
 ]
 
 [[package]]
